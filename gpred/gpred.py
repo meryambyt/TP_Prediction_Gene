@@ -115,12 +115,15 @@ def has_shine_dalgarno(shine_regex: Pattern, sequence: str, start: int, max_shin
     :param max_shine_dalgarno_distance: (int) Maximum distance of the shine dalgarno to the start position
     :return: (boolean) true -> has a shine dalgarno upstream to the gene, false -> no
     """
-    max_test = max(0, start - max_shine_dalgarno_distance)
-    stop = start - 6
-    match_object = shine_regex.search(sequence, max_test, stop)
-    if match_object:
-        return True
-    return False
+    position_max = start - max_shine_dalgarno_distance
+    end_position = start - 6
+    match_object = shine_regex.search(sequence, position_max, end_position)
+    shine = False
+    if position_max < 0:
+        return False
+    if match_object is not None:
+        shine = True
+    return shine
 
 
 def predict_genes(sequence: str, start_regex: Pattern, stop_regex: Pattern, shine_regex: Pattern, 
@@ -234,7 +237,6 @@ def main() -> None: # pragma: no cover
     predict_gene = predict_genes(sequence, start_regex, stop_regex, shine_regex, 
                                 args.min_gene_len, args.max_shine_dalgarno_distance,
                                 args.min_gap)
-    print(predict_gene)
     # We reverse and complement
     sequence_rc = reverse_complement(sequence)
     predict_gene_rc = predict_genes(sequence_rc, start_regex, stop_regex, shine_regex, 
@@ -250,10 +252,6 @@ def main() -> None: # pragma: no cover
     write_genes_pos(args.predicted_genes_file, sort_predict)
     write_genes(args.fasta_file, sequence, predict_gene, sequence_rc, 
                 predict_gene_rc)
-    
-    # Call to output functions
-    #write_genes_pos(args.predicted_genes_file, probable_genes)
-    #write_genes(args.fasta_file, sequence, probable_genes, sequence_rc, probable_genes_comp)
 
 if __name__ == '__main__':
     main()
